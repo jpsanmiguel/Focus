@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
+    android:background="#ffffff"
     android:gravity="bottom"
     android:orientation="horizontal">
 
     <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColorHint="#CFD8DC"
-        android:textColor="#CFD8DC"
-        android:hint="Write a message..."
         android:id="@+id/messageArea"
+        android:layout_width="match_parent"
+        android:layout_height="39dp"
+        android:layout_weight="1"
+
+        android:hint="@string/write_a_message"
+        android:inputType="text"
         android:maxHeight="80dp"
-        />
+        android:singleLine="true"
+        android:textAllCaps="false"
+        android:textColor="@android:color/background_dark"
+        android:textColorHint="#CFD8DC" />
 
     <ImageView
+        android:id="@+id/sendButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="4"
+        android:contentDescription="@string/todo"
         android:padding="4dp"
-        android:src="@android:drawable/ic_menu_send"
-        android:id="@+id/sendButton"/>
+        android:src="@android:drawable/ic_menu_send" />
 </LinearLayout>

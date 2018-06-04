@@ -2,6 +2,8 @@ package com.androidchatapp;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -20,6 +22,10 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 
 public class Login extends AppCompatActivity {
 
@@ -62,7 +68,7 @@ public class Login extends AppCompatActivity {
                     password.setError("can't be blank");
                 }
                 else{
-                    String url = "https://chat-3080c.firebaseio.com/users.json";
+                    String url = "https://androidchatapp2-6b313.firebaseio.com/users.json";
                     final ProgressDialog pd = new ProgressDialog(Login.this);
                     pd.setMessage("Loading...");
                     pd.show();
@@ -83,7 +89,8 @@ public class Login extends AppCompatActivity {
                                     else if(obj.getJSONObject(user).getString("password").equals(pass)){
                                         UserDetails.username = user;
                                         UserDetails.password = pass;
-                                        startActivity(new Intent(Login.this, ScreenPrincipal.class));
+                                        UserDetails.imagePath = obj.getJSONObject(user).getString("profilePic");
+                                        startActivity(new Intent(Login.this, Wall.class));
 
                                     }
                                     else {
