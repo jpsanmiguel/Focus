@@ -68,10 +68,10 @@ public class Chat extends AppCompatActivity {
                 String userName = map.get("user").toString();
 
                 if(userName.equals(UserDetails.username)){
-                    addMessageBox("You:-\n" + message, 1);
+                    addMessageBox("You:\n" + message, 1);
                 }
                 else{
-                    addMessageBox(UserDetails.chatWith + ":-\n" + message, 2);
+                    addMessageBox(UserDetails.chatWith + ":\n" + message, 2);
                 }
             }
 
@@ -105,11 +105,11 @@ public class Chat extends AppCompatActivity {
         lp2.weight = 1.0f;
 
         if(type == 1) {
-            lp2.gravity = Gravity.LEFT;
+            lp2.gravity = Gravity.RIGHT;
             textView.setBackgroundResource(R.drawable.bubble_in);
         }
         else{
-            lp2.gravity = Gravity.RIGHT;
+            lp2.gravity = Gravity.LEFT;
             textView.setBackgroundResource(R.drawable.bubble_out);
         }
         textView.setLayoutParams(lp2);

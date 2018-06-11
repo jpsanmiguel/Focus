@@ -2,6 +2,7 @@ package com.androidchatapp;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -16,6 +18,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +31,17 @@ public class Users extends AppCompatActivity {
     ListView usersList;
     TextView noUsersText;
     ArrayList<String> al = new ArrayList<>();
+
+    ArrayList<RequestBuilder<Bitmap>> images;
+
+    ArrayList<String> names;
+
+    ArrayList<String> versionNumber;
+
+    ListView lView;
+
+    ListAdapter lAdapter;
+
     int totalUsers = 0;
     ProgressDialog pd;
 
@@ -35,8 +50,13 @@ public class Users extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_users);
 
-        usersList = (ListView)findViewById(R.id.usersList);
         noUsersText = (TextView)findViewById(R.id.noUsersText);
+        images = new ArrayList<>();
+        names = new ArrayList<>();
+        versionNumber = new ArrayList<>();
+
+        lView = (ListView) findViewById(R.id.usersList);
+        getAllImages();
 
         pd = new ProgressDialog(Users.this);
         pd.setMessage("Loading...");
@@ -59,7 +79,7 @@ public class Users extends AppCompatActivity {
         RequestQueue rQueue = Volley.newRequestQueue(Users.this);
         rQueue.add(request);
 
-        usersList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 UserDetails.chatWith = al.get(position);
@@ -69,6 +89,44 @@ public class Users extends AppCompatActivity {
     }
 
     public void doOnSuccess(String s){
+        try {
+            JSONObject obj = new JSONObject(s);
+
+            Iterator i = obj.keys();
+            String key = "";
+            final ProgressDialog pd = new ProgressDialog(Users.this);
+            pd.setMessage("Loading...");
+            pd.show();
+            while (i.hasNext()) {
+                key = i.next().toString();
+
+                if (!key.equals(UserDetails.username)) {
+                    RequestBuilder<Bitmap> request = Glide.with(getApplicationContext()).asBitmap().load(obj.getJSONObject(key).getString("profilePic"));
+                    images.add(request);
+                    names.add(key);
+                    versionNumber.add(obj.getJSONObject(key).getString("profilePic"));
+                }
+
+            }
+
+            pd.dismiss();
+            lAdapter = new ListAdapter(Users.this, names, versionNumber, images, null, null);
+
+            lView.setAdapter(lAdapter);
+
+            lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                    UserDetails.chatWith = names.get(i);
+                    startActivity(new Intent(Users.this, Chat.class));
+
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         try {
             JSONObject obj = new JSONObject(s);
 
@@ -89,16 +147,29 @@ public class Users extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if(totalUsers <=1){
-            noUsersText.setVisibility(View.VISIBLE);
-            usersList.setVisibility(View.GONE);
-        }
-        else{
-            noUsersText.setVisibility(View.GONE);
-            usersList.setVisibility(View.VISIBLE);
-            usersList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, al));
-        }
-
         pd.dismiss();
+    }
+    public void getAllImages() {
+
+        String url = "https://androidchatapp2-6b313.firebaseio.com/users.json";
+
+
+
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>(){
+            @Override
+            public void onResponse(String s) {
+                doOnSuccess(s);
+            }
+        },new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                System.out.println("" + volleyError);
+
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(Users.this);
+        rQueue.add(request);
+
     }
 }

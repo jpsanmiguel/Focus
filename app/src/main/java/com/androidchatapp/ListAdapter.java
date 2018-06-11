@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,20 +20,24 @@ public class ListAdapter extends BaseAdapter {
 
     Context context;
     private final ArrayList<String> names;
-    private final ArrayList<String> numbers;
+    private final ArrayList<UserImage> userImages;
+    private final ArrayList<String> fullUser;
+    private final ArrayList<String> contents;
     private final  ArrayList<RequestBuilder<Bitmap>> images;
 
-    public ListAdapter(Context context, ArrayList<String> names, ArrayList<String> numbers,  ArrayList<RequestBuilder<Bitmap>> images){
+    public ListAdapter(Context context, ArrayList<String> fullUser, ArrayList<String> contents,  ArrayList<RequestBuilder<Bitmap>> images, ArrayList<String> names, ArrayList<UserImage> userImages){
         //super(context, R.layout.single_list_app_item, utilsArrayList);
         this.context = context;
+        this.fullUser = fullUser;
         this.names = names;
-        this.numbers = numbers;
+        this.contents = contents;
         this.images = images;
+        this.userImages = userImages;
     }
 
     @Override
     public int getCount() {
-        return names.size();
+        return fullUser.size();
     }
 
     @Override
@@ -73,9 +76,20 @@ public class ListAdapter extends BaseAdapter {
             result=convertView;
         }
 
-        viewHolder.txtName.setText(names.get(position));
-        viewHolder.txtVersion.setText(numbers.get(position));
-        images.get(position).into(viewHolder.icon);
+        viewHolder.txtName.setText(fullUser.get(position));
+        viewHolder.txtVersion.setText(contents.get(position));
+        if(names != null && userImages != null) {
+            for(UserImage user:userImages)
+            {
+                if(user.username.equals(names.get(position)))
+                {
+                    images.get(user.numberImage).into(viewHolder.icon);
+                }
+            }
+        }
+        else{
+            images.get(position).into(viewHolder.icon);
+        }
 
         return convertView;
     }

@@ -2,13 +2,12 @@ package com.androidchatapp;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,8 +20,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.firebase.client.Firebase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -30,15 +28,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 
 public class Wall extends AppCompatActivity {
 
     ArrayList<RequestBuilder<Bitmap>> images;
 
-    ArrayList<String> names;
+    ArrayList<String> contents;
 
-    ArrayList<String> versionNumber;
+    ArrayList<String> usernames;
+
+    ArrayList<String> users;
+
+    ArrayList<UserImage> usersImages;
 
     FirebaseStorage storage;
     StorageReference storageReference;
@@ -49,7 +52,9 @@ public class Wall extends AppCompatActivity {
 
     ImageView perfilPrincipal;
 
-    Bitmap bitmap;
+    Button postButton;
+
+    EditText postText;
 
     private Button chat;
 
@@ -64,12 +69,18 @@ public class Wall extends AppCompatActivity {
         //perfilPrincipal.setImageBitmap(getBitmapFromURL(UserDetails.imagePath.toString()));
 
         images = new ArrayList<>();
-        names = new ArrayList<>();
-        versionNumber = new ArrayList<>();
+        contents = new ArrayList<>();
+        usernames = new ArrayList<>();
+        users = new ArrayList<>();
+        usersImages = new ArrayList<>();
         perfilPrincipal = (ImageView) findViewById(R.id.perfilprincipal);
         Glide.with(getApplicationContext()).load(UserDetails.imagePath).into(perfilPrincipal);
-        getAllImages();
+        getAllPosts();
 
+        Firebase.setAndroidContext(this);
+
+        postButton = (Button) findViewById(R.id.post);
+        postText = (EditText) findViewById(R.id.postText);
 
         perfilPrincipal.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,18 +104,89 @@ public class Wall extends AppCompatActivity {
                 startActivity(i);
             }});
 
+        postButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(postText.getText().toString().equals("")){
+                    postText.setError("can't be blank");
+                }
+                else
+                {
+                final ProgressDialog pd = new ProgressDialog(Wall.this);
+                pd.setMessage("Loading...");
+                pd.show();
+                Calendar calendar = Calendar.getInstance();
+
+
+                String day;
+                String month;
+                String year = ""+calendar.get(Calendar.YEAR);
+                int hourBefore = (calendar.get(Calendar.HOUR_OF_DAY) + 24 -5) % 24;
+                String hour;
+                String minute;
+                if(calendar.get(Calendar.DAY_OF_MONTH) < 10 ){ day = "0" + calendar.get(Calendar.DAY_OF_MONTH);}else{ day = "" + calendar.get(Calendar.DAY_OF_MONTH);}
+                if((calendar.get(Calendar.MONTH)+1) < 10 ){ month = "0" + (calendar.get(Calendar.MONTH)+1);}else{ month = "" + (calendar.get(Calendar.MONTH)+1);}
+                year = year.substring(year.length()-2);
+                if(hourBefore < 10 ){ hour = "0" + hourBefore;}else{ hour = "" + hourBefore;}
+                if(calendar.get(Calendar.MINUTE) < 10 ){ minute = "0" + calendar.get(Calendar.MINUTE);}else{ minute = "" + calendar.get(Calendar.MINUTE);}
+                final String postName = UserDetails.username + ";" + day + month + year + ";" + hour + ":" + minute;
+
+                String url = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
+
+                StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String s) {
+                        Firebase reference = new Firebase("https://androidchatapp2-6b313.firebaseio.com/posts");
+
+                        try {
+                            JSONObject obj = new JSONObject(s);
+
+                            if (!obj.has(postName)) {
+                                reference.child(postName).child("content").setValue(postText.getText().toString());
+                                Toast.makeText(Wall.this, "Succesfully posted!", Toast.LENGTH_LONG).show();
+                                Intent intent = getIntent();
+                                finish();
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(Wall.this, "You can only post once in a while", Toast.LENGTH_LONG).show();
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        pd.dismiss();
+                    }
+
+
+
+                },new Response.ErrorListener(){
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        System.out.println("" + volleyError );
+                        pd.dismiss();
+                    }
+                });
+
+                RequestQueue rQueue = Volley.newRequestQueue(Wall.this);
+                rQueue.add(request);
+            }}});
+
     }
 
-    public void getAllImages() {
+    public void getAllPosts() {
 
-        String url = "https://androidchatapp2-6b313.firebaseio.com/users.json";
+        String urlPosts = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
+        String urlImages = "https://androidchatapp2-6b313.firebaseio.com/users.json";
 
+        final ProgressDialog pd = new ProgressDialog(Wall.this);
+        pd.setMessage("Loading...");
+        pd.show();
 
-
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>(){
+        StringRequest request = new StringRequest(Request.Method.GET, urlPosts, new Response.Listener<String>(){
             @Override
             public void onResponse(String s) {
-                doOnSuccess(s);
+                doOnSuccessPosts(s);
             }
         },new Response.ErrorListener(){
             @Override
@@ -117,31 +199,48 @@ public class Wall extends AppCompatActivity {
         RequestQueue rQueue = Volley.newRequestQueue(Wall.this);
         rQueue.add(request);
 
+
+        request = new StringRequest(Request.Method.GET, urlImages, new Response.Listener<String>(){
+            @Override
+            public void onResponse(String s) {
+                doOnSuccessImages(s);
+            }
+        },new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                System.out.println("" + volleyError);
+
+            }
+        });
+
+        pd.dismiss();
+
+        rQueue = Volley.newRequestQueue(Wall.this);
+        rQueue.add(request);
+
     }
 
-    public void doOnSuccess(String s) {
+    public void doOnSuccessImages(String s) {
         try {
             JSONObject obj = new JSONObject(s);
 
             Iterator i = obj.keys();
             String key = "";
-            final ProgressDialog pd = new ProgressDialog(Wall.this);
-            pd.setMessage("Loading...");
-            pd.show();
+            int num = 0;
             while (i.hasNext()) {
                 key = i.next().toString();
 
-                if (!key.equals(UserDetails.username)) {
+                if (users.contains(key)) {
                     RequestBuilder<Bitmap> request = Glide.with(getApplicationContext()).asBitmap().load(obj.getJSONObject(key).getString("profilePic"));
+                    UserImage userImage = new UserImage(key, num);
+                    num++;
                     images.add(request);
-                    names.add(key);
-                    versionNumber.add(obj.getJSONObject(key).getString("profilePic"));
+                    usersImages.add(userImage);
                 }
 
             }
 
-            pd.dismiss();
-            lAdapter = new ListAdapter(Wall.this, names, versionNumber, images);
+            lAdapter = new ListAdapter(Wall.this, contents, usernames, images, users, usersImages);
 
             lView.setAdapter(lAdapter);
 
@@ -149,10 +248,36 @@ public class Wall extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                    Toast.makeText(Wall.this, names.get(i), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Wall.this, contents.get(i), Toast.LENGTH_SHORT).show();
 
                 }
             });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void doOnSuccessPosts(String s) {
+        try {
+            JSONObject obj = new JSONObject(s);
+
+            Iterator i = obj.keys();
+            String key = "";
+            while (i.hasNext()) {
+                key = i.next().toString();
+
+                String[] parts = key.split(";");
+
+                String username = parts[0];
+                users.add(username);
+                String date = parts[1].substring(0,1) + "/" + parts[1].substring(2,3) + "/" + parts[1].substring(4,5) + " " + parts[2];
+                contents.add(obj.getJSONObject(key).getString("content"));
+                usernames.add(username + "\t" + date);
+
+
+            }
+
 
         } catch (JSONException e) {
             e.printStackTrace();

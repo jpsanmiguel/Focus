@@ -115,6 +115,7 @@ public class Register extends AppCompatActivity {
 
                                         if(s.equals("null")) {
                                             reference.child(user).child("password").setValue(pass);
+                                            reference.child(user).child("profilePic").setValue(downloadUrl.toString());
                                             Toast.makeText(Register.this, "registration successful", Toast.LENGTH_LONG).show();
                                         }
                                         else {
