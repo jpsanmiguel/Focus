@@ -90,7 +90,10 @@ public class Login extends AppCompatActivity {
                                         UserDetails.username = user;
                                         UserDetails.password = pass;
                                         UserDetails.imagePath = obj.getJSONObject(user).getString("profilePic");
-                                        startActivity(new Intent(Login.this, Wall.class));
+                                        UserDetails.json = obj;
+                                        Intent i = new Intent(Login.this, Wall.class);
+                                        i.putExtra("yaTieneUbicacion", false);
+                                        startActivity(i);
 
                                     }
                                     else {

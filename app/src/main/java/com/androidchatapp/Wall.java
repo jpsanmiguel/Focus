@@ -1,7 +1,14 @@
 package com.androidchatapp;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -33,9 +40,12 @@ import java.util.Iterator;
 
 public class Wall extends AppCompatActivity {
 
+    LocationManager locationManager;
+    Context mContext;
+    ProgressDialog pdLocation;
     ArrayList<RequestBuilder<Bitmap>> images;
 
-    ArrayList<String> contents;
+    ArrayList<JSONObject> contents;
 
     ArrayList<String> usernames;
 
@@ -48,20 +58,40 @@ public class Wall extends AppCompatActivity {
 
     ListView lView;
 
-    ListAdapter lAdapter;
+    ListAdapterPosts lAdapter;
 
     ImageView perfilPrincipal;
 
     Button postButton;
 
+    Button locationButton;
+
     EditText postText;
+
+    ArrayList<Post> posts;
 
     private Button chat;
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_muro);
+        Intent launchingIntent = getIntent();
+        if(!launchingIntent.getBooleanExtra("yaTieneUbicacion", false))
+        {
+            mContext=this;
+            locationManager=(LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+            pdLocation = new ProgressDialog(Wall.this);
+            pdLocation.setMessage("Estamos accediendo a tu ubicación :)");
+            pdLocation.show();
+            locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 2000, 10, locationListenerGPS);
+            isLocationEnabled();
+        }
+
+        //Location
+
+
 
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
@@ -73,12 +103,14 @@ public class Wall extends AppCompatActivity {
         usernames = new ArrayList<>();
         users = new ArrayList<>();
         usersImages = new ArrayList<>();
+        posts = new ArrayList<>();
         perfilPrincipal = (ImageView) findViewById(R.id.perfilprincipal);
         Glide.with(getApplicationContext()).load(UserDetails.imagePath).into(perfilPrincipal);
         getAllPosts();
 
         Firebase.setAndroidContext(this);
 
+        locationButton = findViewById(R.id.location);
         postButton = (Button) findViewById(R.id.post);
         postText = (EditText) findViewById(R.id.postText);
 
@@ -88,6 +120,7 @@ public class Wall extends AppCompatActivity {
                 Intent i = new Intent(Wall.this, Profile.class);
                 startActivity(i);
             }});
+
 
         lView = (ListView) findViewById(R.id.usersList);
 
@@ -121,15 +154,16 @@ public class Wall extends AppCompatActivity {
                 String day;
                 String month;
                 String year = ""+calendar.get(Calendar.YEAR);
-                int hourBefore = (calendar.get(Calendar.HOUR_OF_DAY) + 24 -5) % 24;
                 String hour;
                 String minute;
+                String second;
                 if(calendar.get(Calendar.DAY_OF_MONTH) < 10 ){ day = "0" + calendar.get(Calendar.DAY_OF_MONTH);}else{ day = "" + calendar.get(Calendar.DAY_OF_MONTH);}
                 if((calendar.get(Calendar.MONTH)+1) < 10 ){ month = "0" + (calendar.get(Calendar.MONTH)+1);}else{ month = "" + (calendar.get(Calendar.MONTH)+1);}
                 year = year.substring(year.length()-2);
-                if(hourBefore < 10 ){ hour = "0" + hourBefore;}else{ hour = "" + hourBefore;}
+                if(calendar.get(Calendar.HOUR_OF_DAY)  < 10 ){ hour = "0" + calendar.get(Calendar.HOUR_OF_DAY) ;}else{ hour = "" + calendar.get(Calendar.HOUR_OF_DAY) ;}
                 if(calendar.get(Calendar.MINUTE) < 10 ){ minute = "0" + calendar.get(Calendar.MINUTE);}else{ minute = "" + calendar.get(Calendar.MINUTE);}
-                final String postName = UserDetails.username + ";" + day + month + year + ";" + hour + ":" + minute;
+                if(calendar.get(Calendar.SECOND) < 10 ){ second = "0" + calendar.get(Calendar.SECOND);}else{ second = "" + calendar.get(Calendar.SECOND);}
+                final String postName = UserDetails.username + ";" + day + month + year + ";" + hour + ":" + minute + ":" + second;
 
                 String url = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
 
@@ -141,13 +175,20 @@ public class Wall extends AppCompatActivity {
                         try {
                             JSONObject obj = new JSONObject(s);
 
-                            if (!obj.has(postName)) {
+                            if(UserDetails.latitude.equals("") || UserDetails.longitude.equals(""))
+                            {
+                                pdLocation.setMessage("Estamos accediendo a tu ubicación :)");
+                            }
+                            else if (!obj.has(postName) && !UserDetails.latitude.equals("") && !UserDetails.longitude.equals("")) {
                                 reference.child(postName).child("content").setValue(postText.getText().toString());
+                                reference.child(postName).child("latitude").setValue(UserDetails.latitude);
+                                reference.child(postName).child("longitude").setValue(UserDetails.longitude);
                                 Toast.makeText(Wall.this, "Succesfully posted!", Toast.LENGTH_LONG).show();
                                 Intent intent = getIntent();
                                 finish();
+                                intent.putExtra("yaTieneUbicacion", true);
                                 startActivity(intent);
-                            } else {
+                            } else if(obj.has(postName)){
                                 Toast.makeText(Wall.this, "You can only post once in a while", Toast.LENGTH_LONG).show();
                             }
 
@@ -174,13 +215,62 @@ public class Wall extends AppCompatActivity {
 
     }
 
+    LocationListener locationListenerGPS=new LocationListener() {
+        @Override
+        public void onLocationChanged(android.location.Location location) {
+            double latitude=location.getLatitude();
+            double longitude=location.getLongitude();
+                UserDetails.latitude = latitude + "";
+                UserDetails.longitude = longitude + "";
+            pdLocation.dismiss();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
+
+    private void isLocationEnabled() {
+
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            AlertDialog.Builder alertDialog=new AlertDialog.Builder(mContext);
+            alertDialog.setTitle("Enable Location");
+            alertDialog.setMessage("Your locations setting is not enabled. Please enabled it in settings menu.");
+            alertDialog.setPositiveButton("Location Settings", new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog, int which){
+                    Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                public void onClick(DialogInterface dialog, int which){
+                    dialog.cancel();
+                }
+            });
+            AlertDialog alert=alertDialog.create();
+            alert.show();
+        }
+    }
+
     public void getAllPosts() {
 
         String urlPosts = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
         String urlImages = "https://androidchatapp2-6b313.firebaseio.com/users.json";
 
         final ProgressDialog pd = new ProgressDialog(Wall.this);
-        pd.setMessage("Loading...");
+        pd.setMessage("Cargando...");
         pd.show();
 
         StringRequest request = new StringRequest(Request.Method.GET, urlPosts, new Response.Listener<String>(){
@@ -231,16 +321,25 @@ public class Wall extends AppCompatActivity {
                 key = i.next().toString();
 
                 if (users.contains(key)) {
+                    String fuck = obj.getJSONObject(key).getString("profilePic");
                     RequestBuilder<Bitmap> request = Glide.with(getApplicationContext()).asBitmap().load(obj.getJSONObject(key).getString("profilePic"));
                     UserImage userImage = new UserImage(key, num);
                     num++;
                     images.add(request);
                     usersImages.add(userImage);
+                    for(Post post:posts)
+                    {
+                        if(post.getUsername().equals(key))
+                        {
+                            post.setUserImage(userImage);
+                            post.setImage(request);
+                        }
+                    }
                 }
 
             }
 
-            lAdapter = new ListAdapter(Wall.this, contents, usernames, images, users, usersImages);
+            lAdapter = new ListAdapterPosts(Wall.this, contents, usernames, images, users, usersImages, posts);
 
             lView.setAdapter(lAdapter);
 
@@ -248,7 +347,11 @@ public class Wall extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                    Toast.makeText(Wall.this, contents.get(i), Toast.LENGTH_SHORT).show();
+                    try {
+                        Toast.makeText(Wall.this, contents.get(i).getString("content"), Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
                 }
             });
@@ -272,8 +375,10 @@ public class Wall extends AppCompatActivity {
                 String username = parts[0];
                 users.add(username);
                 String date = parts[1].substring(0,1) + "/" + parts[1].substring(2,3) + "/" + parts[1].substring(4,5) + " " + parts[2];
-                contents.add(obj.getJSONObject(key).getString("content"));
+                contents.add(obj.getJSONObject(key));
                 usernames.add(username + "\t" + date);
+                Post post = new Post( username, null, username + "\t" + date, obj.getJSONObject(key), null);
+                posts.add(post);
 
 
             }

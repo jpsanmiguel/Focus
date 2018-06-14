@@ -195,6 +195,10 @@ public class Register extends AppCompatActivity {
     }
 
     private void uploadImage() {
+
+        final ProgressDialog pd = new ProgressDialog(Register.this);
+        pd.setMessage("Loading...");
+        pd.show();
         if(filePath != null)
         {
             StorageReference ref = storageReference.child("images/"+ user);
@@ -213,5 +217,6 @@ public class Register extends AppCompatActivity {
                         }
                     });
         }
+        pd.dismiss();
     }
 }

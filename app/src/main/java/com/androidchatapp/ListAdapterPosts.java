@@ -14,24 +14,33 @@ import android.widget.TextView;
 
 import com.bumptech.glide.RequestBuilder;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 
-public class ListAdapter extends BaseAdapter {
+public class ListAdapterPosts extends BaseAdapter {
 
     Context context;
     private final ArrayList<String> names;
+    private final ArrayList<UserImage> userImages;
     private final ArrayList<String> fullUser;
-    private final ArrayList<String> contents;
+    private final ArrayList<JSONObject> contents;
     private final  ArrayList<RequestBuilder<Bitmap>> images;
+    private final ArrayList<Post> posts;
 
-    public ListAdapter(Context context, ArrayList<String> fullUser, ArrayList<String> contents,  ArrayList<RequestBuilder<Bitmap>> images, ArrayList<String> names){
+    public ListAdapterPosts(Context context, ArrayList<JSONObject> contents, ArrayList<String> fullUser, ArrayList<RequestBuilder<Bitmap>> images, ArrayList<String> names, ArrayList<UserImage> userImages, ArrayList<Post> posts){
         //super(context, R.layout.single_list_app_item, utilsArrayList);
         this.context = context;
         this.fullUser = fullUser;
         this.names = names;
         this.contents = contents;
         this.images = images;
+        this.userImages = userImages;
+        this.posts = posts;
+        MergeSort ob = new MergeSort(posts);
+        ob.sort();
     }
 
     @Override
@@ -75,20 +84,30 @@ public class ListAdapter extends BaseAdapter {
             result=convertView;
         }
 
-        viewHolder.txtName.setText(fullUser.get(position));
-        viewHolder.txtVersion.setText(contents.get(position));
-            images.get(position).into(viewHolder.icon);
+        viewHolder.txtName.setText(posts.get(position).getFullUser());
+        try {
+            viewHolder.txtVersion.setText(posts.get(position).getContent().getString("content"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        posts.get(position).getImage().into(viewHolder.icon);
 
 
         viewHolder.icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, UserProfile.class);
-                intent.putExtra("username", names.get(position));
+                intent.putExtra("username", posts.get(position).getUsername());
                 context.startActivity(intent);
             }
         });
         return convertView;
+    }
+
+    private void sortPosts()
+    {
+
     }
 
     private static class ViewHolder {

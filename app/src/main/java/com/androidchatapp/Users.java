@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Users extends AppCompatActivity {
-    ListView usersList;
     TextView noUsersText;
-    ArrayList<String> al = new ArrayList<>();
 
     ArrayList<RequestBuilder<Bitmap>> images;
 
@@ -56,7 +54,6 @@ public class Users extends AppCompatActivity {
         versionNumber = new ArrayList<>();
 
         lView = (ListView) findViewById(R.id.usersList);
-        getAllImages();
 
         pd = new ProgressDialog(Users.this);
         pd.setMessage("Loading...");
@@ -79,13 +76,7 @@ public class Users extends AppCompatActivity {
         RequestQueue rQueue = Volley.newRequestQueue(Users.this);
         rQueue.add(request);
 
-        lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                UserDetails.chatWith = al.get(position);
-                startActivity(new Intent(Users.this, Chat.class));
-            }
-        });
+
     }
 
     public void doOnSuccess(String s){
@@ -110,7 +101,7 @@ public class Users extends AppCompatActivity {
             }
 
             pd.dismiss();
-            lAdapter = new ListAdapter(Users.this, names, versionNumber, images, null, null);
+            lAdapter = new ListAdapter(Users.this, names, versionNumber, images, names);
 
             lView.setAdapter(lAdapter);
 
@@ -127,49 +118,7 @@ public class Users extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        try {
-            JSONObject obj = new JSONObject(s);
-
-            Iterator i = obj.keys();
-            String key = "";
-
-            while(i.hasNext()){
-                key = i.next().toString();
-
-                if(!key.equals(UserDetails.username)) {
-                    al.add(key);
-                }
-
-                totalUsers++;
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         pd.dismiss();
-    }
-    public void getAllImages() {
-
-        String url = "https://androidchatapp2-6b313.firebaseio.com/users.json";
-
-
-
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>(){
-            @Override
-            public void onResponse(String s) {
-                doOnSuccess(s);
-            }
-        },new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                System.out.println("" + volleyError);
-
-            }
-        });
-
-        RequestQueue rQueue = Volley.newRequestQueue(Users.this);
-        rQueue.add(request);
-
     }
 }
