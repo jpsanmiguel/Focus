@@ -17,7 +17,6 @@
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pedro Alejandro Ruiz"
         android:textAlignment="center"
         android:textSize="24sp" />
 
@@ -25,7 +24,22 @@
         android:id="@+id/degree"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Estudiante Ing. Industrial"
+        android:textAlignment="center"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/university"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.53"
+        android:textAlignment="center"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/teaches"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.53"
         android:textAlignment="center"
         android:textSize="16sp" />
 

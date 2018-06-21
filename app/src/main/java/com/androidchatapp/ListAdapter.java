@@ -62,9 +62,8 @@ public class ListAdapter extends BaseAdapter {
 
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(context);
-            convertView = inflater.inflate(R.layout.activity_muro_one_list_item, parent, false);
+            convertView = inflater.inflate(R.layout.activity_muro_one_list_item_chat, parent, false);
             viewHolder.txtName = (TextView) convertView.findViewById(R.id.aNametxt);
-            viewHolder.txtVersion = (TextView) convertView.findViewById(R.id.aVersiontxt);
             viewHolder.icon = (ImageView) convertView.findViewById(R.id.appIconIV);
 
             result=convertView;
@@ -76,8 +75,7 @@ public class ListAdapter extends BaseAdapter {
         }
 
         viewHolder.txtName.setText(fullUser.get(position));
-        viewHolder.txtVersion.setText(contents.get(position));
-            images.get(position).into(viewHolder.icon);
+        images.get(position).into(viewHolder.icon);
 
 
         viewHolder.icon.setOnClickListener(new View.OnClickListener() {
@@ -94,7 +92,6 @@ public class ListAdapter extends BaseAdapter {
     private static class ViewHolder {
 
         TextView txtName;
-        TextView txtVersion;
         ImageView icon;
 
     }

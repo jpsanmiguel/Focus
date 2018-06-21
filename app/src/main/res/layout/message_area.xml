@@ -13,7 +13,7 @@
         android:layout_height="39dp"
         android:layout_weight="1"
 
-        android:hint="@string/write_a_message"
+        android:hint="Escribe un mensaje..."
         android:inputType="text"
         android:maxHeight="80dp"
         android:singleLine="true"

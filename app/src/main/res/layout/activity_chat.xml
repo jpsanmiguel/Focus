@@ -5,6 +5,16 @@
     android:layout_height="match_parent"
     android:background="#ffffff"
     android:orientation="vertical">
+    android:background="@drawable/fondo"
+
+    <TextView
+        android:id="@+id/userChat"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimaryDark"
+        android:gravity="center"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="30sp" />
 
     <ScrollView
         android:layout_width="match_parent"

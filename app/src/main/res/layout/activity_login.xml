@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/giphy"
+    android:background="@drawable/fondo"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -19,12 +19,18 @@
         android:layout_height="215dp"
         app:srcCompat="@drawable/imagenfondo" />
 
+    <TextView
+        android:id="@+id/Hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ingresa tu correo sin extensión (ej. sin @uniandes.edu.co)" />
+
     <EditText
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:hint="enter username"
+        android:hint="Entra tu usuario"
         android:inputType="text"
         android:maxLines="1" />
 
@@ -33,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:hint="enter password"
+        android:hint="Entra tu contraseña"
         android:inputType="textPassword"
         android:maxLines="1" />
 
@@ -42,14 +48,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:text="Login" />
+        android:text="Ingresar" />
 
     <TextView
         android:id="@+id/register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Click here to register"
+        android:text="Haz click aquí para registrarte"
         android:textSize="20dp" />
 
 </LinearLayout>

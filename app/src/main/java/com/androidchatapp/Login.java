@@ -2,8 +2,6 @@ package com.androidchatapp;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -22,10 +20,6 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 
 public class Login extends AppCompatActivity {
 
@@ -58,37 +52,49 @@ public class Login extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 user = username.getText().toString();
                 pass = password.getText().toString();
 
                 if(user.equals("")){
-                    username.setError("can't be blank");
+                    username.setError("No puede ser vacío");
                 }
                 else if(pass.equals("")){
-                    password.setError("can't be blank");
+                    password.setError("No puede ser vacío");
                 }
                 else{
                     String url = "https://androidchatapp2-6b313.firebaseio.com/users.json";
                     final ProgressDialog pd = new ProgressDialog(Login.this);
-                    pd.setMessage("Loading...");
+                    pd.setMessage("Cargando...");
                     pd.show();
 
                     StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>(){
                         @Override
                         public void onResponse(String s) {
                             if(s.equals("null")){
-                                Toast.makeText(Login.this, "user not found", Toast.LENGTH_LONG).show();
+                                Toast.makeText(Login.this, "Usuario no encontrado", Toast.LENGTH_LONG).show();
                             }
                             else{
                                 try {
                                     JSONObject obj = new JSONObject(s);
 
                                     if(!obj.has(user)){
-                                        Toast.makeText(Login.this, "user not found", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(Login.this, "Usuario no encontrado", Toast.LENGTH_LONG).show();
                                     }
                                     else if(obj.getJSONObject(user).getString("password").equals(pass)){
                                         UserDetails.username = user;
                                         UserDetails.password = pass;
+                                        UserDetails.degree = obj.getJSONObject(user).getString("degree");
+                                        UserDetails.u = obj.getJSONObject(user).getString("uni");
+                                        UserDetails.teachs = obj.getJSONObject(user).getString("teacher");
+                                        UserDetails.qualification = Double.parseDouble(obj.getJSONObject(user).getString("score"));
+                                        UserDetails.numQualifications = Integer.parseInt(obj.getJSONObject(user).getString("numQual"));
+                                        boolean teachs = false;
+                                        if(obj.getJSONObject(user).getString("teacher").equals("Dicta monitoria :)"))
+                                        {
+                                            teachs = true;
+                                        }
+                                        UserDetails.teaches = teachs;
                                         UserDetails.imagePath = obj.getJSONObject(user).getString("profilePic");
                                         UserDetails.json = obj;
                                         Intent i = new Intent(Login.this, Wall.class);
@@ -97,7 +103,7 @@ public class Login extends AppCompatActivity {
 
                                     }
                                     else {
-                                        Toast.makeText(Login.this, "incorrect password", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(Login.this, "Contraseña incorrecta", Toast.LENGTH_LONG).show();
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();

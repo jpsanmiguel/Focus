@@ -2,12 +2,12 @@ package com.androidchatapp;
 
 import java.util.ArrayList;
 import java.util.Scanner;
-public class MergeSort {
+public class MergeSortPostNear {
 
     private ArrayList<Post> strList;
 
     // Constructor
-    public MergeSort(ArrayList<Post> input) {
+    public MergeSortPostNear(ArrayList<Post> input) {
         strList = input;
     }
 
@@ -53,7 +53,7 @@ public class MergeSort {
         // been used up, keep taking the smaller of left.get(leftIndex)
         // or right.get(rightIndex) and adding it at both.get(bothIndex).
         while (leftIndex < left.size() && rightIndex < right.size()) {
-            if ( (left.get(leftIndex).compareTo(right.get(rightIndex))) < 0) {
+            if ( (left.get(leftIndex).compareToNear(right.get(rightIndex))) < 0) {
                 whole.set(wholeIndex, left.get(leftIndex));
                 leftIndex++;
             } else {
