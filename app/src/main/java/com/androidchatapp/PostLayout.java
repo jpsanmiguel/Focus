@@ -18,6 +18,11 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.firebase.client.Firebase;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
+
 public class PostLayout extends AppCompatActivity {
 
     ImageView profilePic;
@@ -25,8 +30,10 @@ public class PostLayout extends AppCompatActivity {
     TextView content;
     TextView locationDistance;
     Button participate;
-    Button chatPost;
-    String user,className, contenido;
+    Button chatPost, finishClass;
+    String user, className, contentStr, postName;
+
+    boolean active;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,19 +48,34 @@ public class PostLayout extends AppCompatActivity {
         locationDistance = findViewById(R.id.locationDistance);
         participate = findViewById(R.id.participate);
         chatPost = findViewById(R.id.chatPost);
+        finishClass = findViewById(R.id.finishClass);
 
 
         Glide.with(getApplicationContext()).load(launchingIntent.getStringExtra("image")).into(profilePic);
+        postName = launchingIntent.getStringExtra("postName");
         user = launchingIntent.getStringExtra("username");
-        contenido = launchingIntent.getStringExtra("content");
+        if (UserDetails.username.equals(user)) {
+            user = "ti";
+            participate.setVisibility(View.INVISIBLE);
+            chatPost.setVisibility(View.INVISIBLE);
+            finishClass.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            finishClass.setVisibility(View.INVISIBLE);
+        }
+        participateClass();
+        contentStr = launchingIntent.getStringExtra("content");
         username.setText("Clase ofrecida por: " + user);
-        content.setText("Contenido: " + contenido);
+        content.setText("Contenido: " + contentStr);
         locationDistance.setText("Esta clase se encuentra a " + launchingIntent.getStringExtra("locationDistance") + " de ti. ");
-        className = user + ";" + contenido + ";" + UserDetails.username;
-                participate.setOnClickListener(new View.OnClickListener() {
+        className = user + ";" + contentStr + ";" + UserDetails.username;
+
+        participate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PostLayout.this, Class.class);
+                intent.putExtra("postName", launchingIntent.getStringExtra("postName"));
                 intent.putExtra("content", launchingIntent.getStringExtra("content"));
                 intent.putExtra("image", launchingIntent.getStringExtra("image"));
                 intent.putExtra("username", launchingIntent.getStringExtra("username"));
@@ -75,15 +97,17 @@ public class PostLayout extends AppCompatActivity {
         chatPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                UserDetails.chatWith = user;
+                startActivity(new Intent(PostLayout.this, Chat.class));
 
-                if (UserDetails.username.equals(user)) {
-                    chatPost.setError("");
-                    Toast.makeText(PostLayout.this, "Este post es tuyo. \nNo puedes contactarte contigo.", Toast.LENGTH_LONG).show();
+            }
+        });
 
-                } else {
-                    UserDetails.chatWith = user;
-                    startActivity(new Intent(PostLayout.this, Chat.class));
-                }
+        finishClass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finishClass();
+
             }
         });
     }
@@ -118,4 +142,111 @@ public class PostLayout extends AppCompatActivity {
         Toast.makeText(PostLayout.this, "Estás registrado para clase :)", Toast.LENGTH_LONG).show();
     }
 
+    public void participateClass() {
+
+        String url = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
+        String url2 = "https://androidchatapp2-6b313.firebaseio.com/classes.json";
+
+
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String s) {
+                doOnSuccessPost(s);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                System.out.println("" + volleyError);
+
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(PostLayout.this);
+        rQueue.add(request);
+        if(active) {
+            request = new StringRequest(Request.Method.GET, url2, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String s) {
+                    doOnSuccessClass(s);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    System.out.println("" + volleyError);
+
+                }
+            });
+
+            rQueue = Volley.newRequestQueue(PostLayout.this);
+            rQueue.add(request);
+        }
+
+    }
+
+    public void doOnSuccessPost(String s) {
+        try {
+
+            JSONObject obj = new JSONObject(s);
+
+            Iterator i = obj.keys();
+            String key = "";
+            while (i.hasNext()) {
+                key = i.next().toString();
+
+                String activeStr = obj.getJSONObject(key).getString("active");
+                if(activeStr.equals("true")){
+                    active = true;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void doOnSuccessClass(String s) {
+        try {
+            JSONObject obj = new JSONObject(s);
+
+            JSONObject classJson = obj.getJSONObject(className);
+            String active = classJson.getString("active");
+
+            if (active.equals("false")) {
+                finishClass.setEnabled(false);
+            }
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void finishClass() {
+
+        String url = "https://androidchatapp2-6b313.firebaseio.com/classes.json";
+
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String s) {
+                doOnSuccessFinish(s);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                System.out.println("" + volleyError);
+
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(PostLayout.this);
+        rQueue.add(request);
+
+    }
+
+    public void doOnSuccessFinish(String s) {
+
+        Firebase reference = new Firebase("https://androidchatapp2-6b313.firebaseio.com/posts");
+
+        reference.child(postName).child("active").setValue("false");
+        Toast.makeText(PostLayout.this, "Has terminado la clase", Toast.LENGTH_LONG).show();
+    }
 }

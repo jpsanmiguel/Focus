@@ -34,7 +34,7 @@ public class Class extends AppCompatActivity  {
     double finalScore, score;
     int finalNumQual, numQual;
     Button submit, updateClassInfo;
-    String user, className;
+    String user, className, postName;
     boolean classActive;
 
     @Override
@@ -55,6 +55,7 @@ public class Class extends AppCompatActivity  {
         username.setText("Clase ofrecida por: " + user);
         content.setText("Contenido: " + launchingIntent.getStringExtra("content"));
         className = launchingIntent.getStringExtra("className");
+        postName = launchingIntent.getStringExtra("postName");
         locationDistance.setText("Esta clase se encuentra a " + launchingIntent.getStringExtra("locationDistance") + " de ti. ");
         submit.setEnabled(false);
         submit.setOnClickListener(new View.OnClickListener() {
@@ -70,6 +71,7 @@ public class Class extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
                 Intent intent = getIntent();
+                intent.putExtra("postName", launchingIntent.getStringExtra("postName"));
                 intent.putExtra("content", launchingIntent.getStringExtra("content"));
                 intent.putExtra("image", launchingIntent.getStringExtra("image"));
                 intent.putExtra("username", launchingIntent.getStringExtra("username"));
@@ -85,7 +87,7 @@ public class Class extends AppCompatActivity  {
 
     public void classActive() {
 
-        String url = "https://androidchatapp2-6b313.firebaseio.com/classes.json";
+        String url = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
 
 
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -110,7 +112,7 @@ public class Class extends AppCompatActivity  {
         try {
             JSONObject obj = new JSONObject(s);
 
-            JSONObject classJson = obj.getJSONObject(className);
+            JSONObject classJson = obj.getJSONObject(postName);
             String active = classJson.getString("active");
 
             if(active.equals("true"))
@@ -121,7 +123,7 @@ public class Class extends AppCompatActivity  {
             {
                 classActive = false;
             }
-            submit.setEnabled(!classActive);
+            submit.setEnabled(classActive);
 
         } catch (JSONException e) {
             e.printStackTrace();

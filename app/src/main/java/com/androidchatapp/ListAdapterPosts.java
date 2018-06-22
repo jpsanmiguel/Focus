@@ -121,6 +121,7 @@ public class ListAdapterPosts extends BaseAdapter {
             public void onClick(View v) {
                 try {
                     Intent intent = new Intent(context, PostLayout.class);
+                    intent.putExtra("postName", posts.get(position).getNameDB());
                     intent.putExtra("content", posts.get(position).getContent().getString("content"));
                     intent.putExtra("image", posts.get(position).getUserImage().image);
                     intent.putExtra("username", posts.get(position).getUsername());
@@ -137,6 +138,7 @@ public class ListAdapterPosts extends BaseAdapter {
             public void onClick(View v) {
                 try {
                     Intent intent = new Intent(context, PostLayout.class);
+                    intent.putExtra("postName", posts.get(position).getNameDB());
                     intent.putExtra("content", posts.get(position).getContent().getString("content"));
                     intent.putExtra("image", posts.get(position).getUserImage().image);
                     intent.putExtra("username", posts.get(position).getUsername());

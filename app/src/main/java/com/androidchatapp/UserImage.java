@@ -13,8 +13,8 @@ public class UserImage {
     public UserImage(String username, int numberImage, String image)
     {
         this.username = username;
-        this.numberImage = numberImage;
         this.image = image;
+        this.numberImage = numberImage;
     }
 
     public String getUsername()

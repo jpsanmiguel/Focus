@@ -64,7 +64,7 @@ public class Wall extends AppCompatActivity {
 
     ImageView perfilPrincipal, goChat;
 
-    Button postButton;
+    Button postButton, classes;
 
     Button locationButtonNear;
     Button locationButtonFar;
@@ -125,6 +125,7 @@ public class Wall extends AppCompatActivity {
         usersImages = new ArrayList<>();
         posts = new ArrayList<>();
         perfilPrincipal = (ImageView) findViewById(R.id.perfilprincipal);
+        classes = findViewById(R.id.classes);
         goChat = findViewById(R.id.goChat);
         welcome = findViewById(R.id.welcome);
         welcome.setText("Bienvenido " + UserDetails.username + "!");
@@ -242,6 +243,14 @@ public class Wall extends AppCompatActivity {
             }
         });
 
+        classes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Wall.this, Classes.class);
+                startActivity(i);
+            }
+        });
+
         lView = (ListView) findViewById(R.id.usersList);
 
 
@@ -306,6 +315,7 @@ public class Wall extends AppCompatActivity {
                                     reference.child(postName).child("content").setValue(postText.getText().toString());
                                     reference.child(postName).child("latitude").setValue(UserDetails.latitude);
                                     reference.child(postName).child("longitude").setValue(UserDetails.longitude);
+                                    reference.child(postName).child("active").setValue("true");
                                     Toast.makeText(Wall.this, "Publicado correctamente!", Toast.LENGTH_LONG).show();
                                     Intent intent = new Intent(Wall.this, Wall.class);
                                     long currTime = System.currentTimeMillis();
@@ -498,7 +508,7 @@ public class Wall extends AppCompatActivity {
                 String date = day + "/" + month + "/" + year + " " + hourParts[0] + ":" + hourParts[1];
                 contents.add(obj.getJSONObject(key));
                 usernames.add(username + "\t" + date);
-                Post post = new Post(username, null, username + "\t" + date, obj.getJSONObject(key), null, 0);
+                Post post = new Post(username, null, username + "\t" + date, obj.getJSONObject(key), null, 0, key);
                 posts.add(post);
 
             }

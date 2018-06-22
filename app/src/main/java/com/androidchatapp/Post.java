@@ -16,23 +16,29 @@ public class Post {
     private String username;
     private UserImage userImage;
     private String fullUser;
+    private String nameDB;
     private JSONObject content;
     private RequestBuilder<Bitmap> image;
     private float distance;
 
 
-    public Post(String username, UserImage userImage, String fullUser, JSONObject content, RequestBuilder<Bitmap> image, float distance) {
+    public Post(String username, UserImage userImage, String fullUser, JSONObject content, RequestBuilder<Bitmap> image, float distance, String nameDB) {
         this.username = username;
         this.userImage = userImage;
         this.fullUser = fullUser;
         this.content = content;
         this.image = image;
         this.distance = distance;
+        this.nameDB = nameDB;
     }
 
     public String getUsername() {
         return username;
     }
+
+    public void setNameDB(String nameDB){this.nameDB = nameDB;}
+
+    public String getNameDB(){return nameDB;}
 
     public void setUsername(String username) {
         this.username = username;
@@ -137,4 +143,6 @@ public class Post {
 
         return -((int) this.getDistance() - (int)o.getDistance());
     }
+
+
 }

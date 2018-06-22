@@ -37,6 +37,13 @@
             android:textSize="16sp" />
 
         <Button
+            android:id="@+id/finishClass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.53"
+            android:text="Terminar clase" />
+
+        <Button
             android:id="@+id/chatPost"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
