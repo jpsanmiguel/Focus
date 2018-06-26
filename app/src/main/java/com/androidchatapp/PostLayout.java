@@ -59,9 +59,7 @@ public class PostLayout extends AppCompatActivity {
             participate.setVisibility(View.INVISIBLE);
             chatPost.setVisibility(View.INVISIBLE);
             finishClass.setVisibility(View.VISIBLE);
-        }
-        else
-        {
+        } else {
             finishClass.setVisibility(View.INVISIBLE);
         }
         participateClass();
@@ -82,13 +80,8 @@ public class PostLayout extends AppCompatActivity {
                 intent.putExtra("locationDistance", launchingIntent.getStringExtra("locationDistance"));
                 intent.putExtra("className", className);
 
-                if (UserDetails.username.equals(user)) {
-                    participate.setError("");
-                    Toast.makeText(PostLayout.this, "Este post es tuyo. \nNo puedes contactarte contigo.", Toast.LENGTH_LONG).show();
 
-                } else {
-                    startClass();
-                }
+                startClass();
 
 
                 startActivity(intent);
@@ -145,7 +138,6 @@ public class PostLayout extends AppCompatActivity {
     public void participateClass() {
 
         String url = "https://androidchatapp2-6b313.firebaseio.com/posts.json";
-        String url2 = "https://androidchatapp2-6b313.firebaseio.com/classes.json";
 
 
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -163,24 +155,6 @@ public class PostLayout extends AppCompatActivity {
 
         RequestQueue rQueue = Volley.newRequestQueue(PostLayout.this);
         rQueue.add(request);
-        if(active) {
-            request = new StringRequest(Request.Method.GET, url2, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String s) {
-                    doOnSuccessClass(s);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError volleyError) {
-                    System.out.println("" + volleyError);
-
-                }
-            });
-
-            rQueue = Volley.newRequestQueue(PostLayout.this);
-            rQueue.add(request);
-        }
-
     }
 
     public void doOnSuccessPost(String s) {
@@ -189,33 +163,15 @@ public class PostLayout extends AppCompatActivity {
             JSONObject obj = new JSONObject(s);
 
             Iterator i = obj.keys();
-            String key = "";
-            while (i.hasNext()) {
-                key = i.next().toString();
-
-                String activeStr = obj.getJSONObject(key).getString("active");
-                if(activeStr.equals("true")){
-                    active = true;
-                }
+            String key = obj.getJSONObject(postName).getString("active");
+            if (key.equals("true")) {
+                active = true;
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
+            finishClass.setEnabled(active);
+            participate.setEnabled(active);
 
-    public void doOnSuccessClass(String s) {
-        try {
-            JSONObject obj = new JSONObject(s);
-
-            JSONObject classJson = obj.getJSONObject(className);
-            String active = classJson.getString("active");
-
-            if (active.equals("false")) {
-                finishClass.setEnabled(false);
-            }
-
-
-        } catch (JSONException e) {
+        } catch (JSONException e)
+        {
             e.printStackTrace();
         }
     }
@@ -247,6 +203,7 @@ public class PostLayout extends AppCompatActivity {
         Firebase reference = new Firebase("https://androidchatapp2-6b313.firebaseio.com/posts");
 
         reference.child(postName).child("active").setValue("false");
+        finishClass.setEnabled(false);
         Toast.makeText(PostLayout.this, "Has terminado la clase", Toast.LENGTH_LONG).show();
     }
 }
